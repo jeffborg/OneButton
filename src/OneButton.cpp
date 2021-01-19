@@ -226,6 +226,7 @@ void OneButton::tick(bool activeLevel)
                ((unsigned long)(now - _startTime) > _pressTicks)) {
       _stopTime = now; // remember stopping time
       _isLongPressed = true; // Keep track of long press state
+      _stopDebounceTime = 0; // keep track of start of debounce time
       if (_pressFunc)
         _pressFunc();
       if (_longPressStartFunc)
@@ -277,7 +278,13 @@ void OneButton::tick(bool activeLevel)
 
   } else if (_state == 6) {
     // waiting for menu pin being release after long press.
-    if (!activeLevel) {
+    if (!activeLevel && _stopDebounceTime == 0) {
+        // entering debounce
+        _stopDebounceTime = now;
+    } else if ((!activeLevel) &&
+               ((unsigned long)(now - _stopDebounceTime) > _debounceTicks)) {
+        // been past 50 ms and button is still release
+      _stopDebounceTime = 0; // reset debouncer
       _isLongPressed = false; // Keep track of long press state
       _stopTime = now; // remember stopping time
       if (_longPressStopFunc)
@@ -285,8 +292,9 @@ void OneButton::tick(bool activeLevel)
       if (_paramLongPressStopFunc)
         _paramLongPressStopFunc(_longPressStopFuncParam);
       _state = 0; // restart.
-    } else {
+    } else if (activeLevel) {
       // button is being long pressed
+      _stopDebounceTime = 0; // reset debouncer
       _stopTime = now; // remember stopping time
       _isLongPressed = true; // Keep track of long press state
       if (_duringLongPressFunc)

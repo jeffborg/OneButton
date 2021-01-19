@@ -185,6 +185,7 @@ private:
   int _state = 0;
   unsigned long _startTime; // will be set in state 1
   unsigned long _stopTime; // will be set in state 2
+  unsigned long _stopDebounceTime; // will be setup in state 6 for debouncing when it's 0 the debouncing code isn't in affect
 };
 
 #endif
